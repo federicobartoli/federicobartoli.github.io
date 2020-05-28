@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+     <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <meta charset="utf-8">
+          <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700&display=swap" rel="stylesheet">
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.3/handlebars.min.js" charset="utf-8"></script>
+          <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+          <script src="https://kit.fontawesome.com/4aa4c430a6.js" crossorigin="anonymous"></script>
+          <link rel="stylesheet" href="css/style.css">
+          <title>Whatsapp Web</title>
+     </head>
+     <body>
+     <div class="container-full-width clearfix">
+
+          <div class="container">
+               <div class="container-green">
+               </div>
+          </div>
+          <!-- finestra che appare per acquisire il nome -->
+          <div class="inserisci-nome">
+               <div class="in-barra-superiore">
+
+                    <p>Aggiungi contatto</p>
+
+               </div>
+          <div class="in-main">
+               <div class="in-avatar">
+                    <img src="img/avataaars.png" alt="">
+               </div>
+               <div class="in-form"><i class="far fa-address-card"></i><input class="in-search-bar-input" type="text" placeholder="Nome" value=""><i id="in-green" class="fas fa-file-import"></i></div>
+          </div>
+          </div>
+          <div class="container-app">
+               <main>
+               <div class="aside-general">
+                    <div class="aside-1">
+                         <div class="object-side">
+                              <div class="avatar-utente-object-side">
+                                   <img src="img/avataaars.png" alt="">
+                              </div>
+                              <div class="barra-strumenti-object-side">
+                                   <div class="barra-strumenti">
+                                        <i class="fas fa-plus-circle"></i>
+                                        <i class="fas fa-comment-alt"></i>
+                                        <i class="fas fa-ellipsis-v"></i>
+                                   </div>
+                              </div>
+                         </div>
+
+                         <div class="notifiche">
+                              <div class="bell-side">
+                                   <i class="fas fa-bullseye"></i>
+                              </div>
+                              <div class="bell-notifiche-testo">
+                                   <p>Ricevi notifiche di nuovi messaggi</p>
+                                   <p id="click-here">Attiva notifiche desktop</p>
+                              </div>
+
+
+
+                         </div>
+
+                         <div class="barra-di-ricerca">
+                              <!-- <div class="placeholder">Cerca o inizia ora una nuova chat</div> -->
+                              <label class="search-bar">
+                                   <i class="fas fa-search"></i>
+                                   <input class="search-bar-input" type="text" placeholder="Cerca o inizia ora una nuova chat" value="">
+
+                              </label>
+                         </div>
+                    </div>
+                    <div class="aside">
+                              <div class="chat">
+                                   <!-- <div class="chat-object" nome-utente="Arianna">
+                                        <div class="avatar-chat-object-dentro">
+                                             <img avatar="federico" src="img/avataaars (4).png" alt="">
+                                        </div>
+                                        <div class="chat-text-utente notifiche-attive">
+                                        <p>Arianna</p>
+                                        <small class="chat-text">😀🐶🐱🐰</small>
+                                        </div>
+                                        <div class="ora-e-notifica">
+                                             <small>5:18PM</small>
+                                             <span><p>2</p></span>
+                                        </div>
+                                   </div>
+                                   <div class="chat-object" nome-utente="Federico">
+                                        <div class="avatar-chat-object-dentro">
+                                             <img avatar="federico" src="img/avataaars (1).png" alt="">
+                                        </div>
+                                        <div class="chat-text-utente notifiche-attive">
+                                        <p>Federico</p>
+                                        <small class="chat-text">Ciao fede, come stai?</small>
+                                        </div>
+                                        <div class="ora-e-notifica">
+                                             <small>6:18PM</small>
+                                             <span><p>1</p></span>
+                                        </div>
+                                   </div>
+                                   <div class="chat-object active "nome-utente="Alessandro">
+                                        <div class="avatar-chat-object-dentro">
+                                             <img src="img/avataaars (5).png" alt="">
+                                        </div>
+                                        <div class="chat-text-utente">
+                                        <p>Alessandro</p>
+                                        <small class="chat-text">😀Divertiti..!</small>
+                                        </div>
+                                        <div class="ora-e-notifica">
+                                             <small>3:18AM</small>
+                                             <span class="opacity-0"><p>2</p></span>
+                                        </div>
+                                   </div>
+                                   <div class="chat-object" nome-utente="Roberta">
+                                        <div class="avatar-chat-object-dentro">
+                                             <img src="img/avataaars (6).png" alt="">
+                                        </div>
+                                        <div class="chat-text-utente">
+                                        <p>Roberta</p>
+                                        <small class="chat-text">🐶Bridget sta bene!</small>
+                                        </div>
+                                        <div class="ora-e-notifica">
+                                             <small>2:13PM</small>
+                                             <span class="opacity-0"><p>2</p></span>
+                                        </div>
+                                   </div>
+                                   <div class="chat-object" nome-utente="Mamma">
+                                        <div class="avatar-chat-object-dentro">
+                                             <img src="img/avataaars (7).png" alt="">
+                                        </div>
+                                        <div class="chat-text-utente notifiche-attive">
+                                        <p>Mamma</p>
+                                        <small class="chat-text">Rispondi a fiocca ! 🐱</small>
+                                        </div>
+                                        <div class="ora-e-notifica">
+                                             <small>5:18AM</small>
+                                             <span><p>5</p></span>
+                                        </div>
+                                   </div>
+                                   <div class="chat-object" nome-utente="Angelo">
+                                        <div class="avatar-chat-object-dentro">
+                                             <img src="img/avataaars (8).png" alt="">
+                                        </div>
+                                        <div class="chat-text-utente">
+                                        <p>Angelo</p>
+                                        <small class="chat-text">Ciaoooooo🐰</small>
+                                        </div>
+                                        <div class="ora-e-notifica">
+                                             <small>5:18PM</small>
+                                             <span class="opacity-0"><p>2</p></span>
+                                        </div>
+                                   </div>
+                                   <div class="chat-object" nome-utente="Arianna">
+                                        <div class="avatar-chat-object-dentro">
+                                             <img src="img/avataaars (4).png" alt="">
+                                        </div>
+                                        <div class="chat-text-utente">
+                                        <p>Arianna</p>
+                                        <small class="chat-text">😀🐶🐱🐰</small>
+                                        </div>
+                                        <div class="ora-e-notifica">
+                                             <small>5:18PM</small>
+                                             <span><p>2</p></span>
+                                        </div>
+                                   </div>
+                                   <div class="chat-object" nome-utente="Arianna">
+                                        <div class="avatar-chat-object-dentro">
+                                             <img src="img/avataaars (4).png" alt="">
+                                        </div>
+                                        <div class="chat-text-utente">
+                                        <p>Arianna</p>
+                                        <small class="chat-text">😀🐶🐱🐰</small>
+                                        </div>
+                                        <div class="ora-e-notifica">
+                                             <small>5:18PM</small>
+                                             <span><p>2</p></span>
+                                        </div>
+                                   </div> -->
+                                   <script id="template-utente" type="text/x-handlebars-template">
+                                        <div class="chat-object {{activeNoActive}}" nome-utente="{{nome}}">
+                                             <div class="avatar-chat-object-dentro">
+                                                  <img src="img/{{avatar}}.png" alt="">
+                                             </div>
+                                             <div class="chat-text-utente">
+                                             <p>{{nome}}</p>
+                                             <small class="chat-text">{{chat}}</small>
+                                             </div>
+                                             <div class="ora-e-notifica">
+                                                  <small>5:18PM</small>
+                                                  <span class="{{style}}"><p>{{notifiche}}</p></span>
+                                             </div>
+                                        </div>
+                                   </script>
+
+                              </div>
+
+               </div>
+               </div>
+
+                    <div class="main">
+                         <div class="navbar-contatto">
+
+                              <div class="object-side">
+                                   <div class="avatar-utente-object-side">
+                                   <img class="avatar offline-chat Alessandro" id="avatar" src="img/avataaars (5).png" alt="">
+                                   <img class="avatar2  Alessandro" id="avatar" src="img/avataaars (5).png" alt="">
+                                   <img class="avatar offline-chat Arianna" id="avatar" src="img/avataaars (4).png" alt="">
+                                   <img class="avatar offline-chat Federico" id="avatar" src="img/avataaars (1).png" alt="">
+                                   <img class="avatar offline-chat Roberta" id="avatar" src="img/avataaars (6).png" alt="">
+                                   <img class="avatar offline-chat Mamma" id="avatar" src="img/avataaars (7).png" alt="">
+                                   <img class="avatar offline-chat Angelo" id="avatar" src="img/avataaars (8).png" alt="">
+                                   <img class="avatar offline-chat utente" id="avatar" src="img/avataaars.png" alt="">
+                                   <p id="nome-utente" class="bolder">Alessandro</p>
+                              </div>
+                              <div class="barra-strumenti-object-side">
+                                   <div class="barra-strumenti">
+                                        <i class="fas fa-undo-alt"></i>
+                                        <i class="fas fa-paperclip"></i>
+                                        <i class="fas fa-ellipsis-v"></i>
+                                   </div>
+                              </div>
+                         </div>
+
+                         </div>
+                         <div class="sfondo-chat">
+                              <script id="template-chat-archivio" type="text/x-handlebars-template">
+                                   <div class=" {{nomeUtente}} main-chat dxs">
+                                        <div class="chat-amico">
+                                             <p>{{messaggiUtente}}</p>
+                                             <small class="ok-send">{{oraPerfetta}}</small>
+                                             <i class="fas fa-caret-down"></i>
+                                             <div class="menu-a-comparsa2">
+                                             <p class="">Info</p>
+                                             <p class="elimina">Elimina</p>
+                                             </div>
+                                        </div>
+                                   </div>
+                              </script>
+
+
+
+                              <script id="template-chat-you" type="text/x-handlebars-template">
+
+                                        <div class="{{nomeChiave}} main-chat {{direzione}}">
+                                             <div class="{{dirDiv}}">
+                                                  <p>{{testoMessaggio}}</p>
+                                                  <small class="ok-send">{{oraPerfetta}}</small>
+                                                  <i class="fas fa-caret-down"></i>
+                                                  <div class="menu-a-comparsa{{number}}">
+                                                  <p class="">Info</p>
+                                                  <p class="elimina">Elimina</p>
+                                                  </div>
+                                             </div>
+                                        </div>
+                              </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                         </div>
+
+                         <div class="form-writing">
+                              <div class="emoticon">
+                                   <i class="far fa-grin-stars"></i>
+                              </div>
+                                   <!-- <div class="placeholder-messaggio">Scrivi un messaggio</div> -->
+                                   <label class="search-bar-messaggio">
+                                        <input class="search-bar-input-messaggio" type="text" title="" placeholder="scrivi un messaggio...">
+                                   </label>
+
+                              <div class="mic">
+                                   <i id="invia-messaggio" class="fas fa-microphone"></i>
+                                   <i id="invia-messaggio" class="far fa-paper-plane nascosto"></i>
+                              </div>
+                         </div>
+                    </div>
+               </main>
+          </div>
+
+
+
+     </div>
+
+
+
+
+
+
+
+     <script src="js/main.js" charset="utf-8"></script>
+     </body>
+</html>

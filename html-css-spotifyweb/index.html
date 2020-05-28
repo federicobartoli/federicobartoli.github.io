@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1.0">
+        <script src="https://kit.fontawesome.com/4aa4c430a6.js" crossorigin="anonymous"></script>
+        <script type="text/javascript" src="lib/jquery.min.js"></script>
+        <script type="text/javascript" src="dist/jplayer/jquery.jplayer.min.js"></script>
+        <script type="text/javascript" src="lib/circle-player/js/jquery.transform2d.js"></script>
+        <script type="text/javascript" src="lib/circle-player/js/jquery.grab.js"></script>
+        <script type="text/javascript" src="lib/circle-player/js/mod.csstransforms.min.js"></script>
+        <script type="text/javascript" src="lib/circle-player/js/circle.player.js"></script>
+        <script type="text/javascript">
+
+//<![CDATA[
+
+var jPlayerAndroidFix = (function($) {
+	var fix = function(id, media, options) {
+		this.playFix = false;
+		this.init(id, media, options);
+	};
+	fix.prototype = {
+		init: function(id, media, options) {
+			var self = this;
+
+			// Store the params
+			this.id = id;
+			this.media = media;
+			this.options = options;
+
+			// Make a jQuery selector of the id, for use by the jPlayer instance.
+			this.player = $(this.id);
+
+			// Make the ready event to set the media to initiate.
+			this.player.bind($.jPlayer.event.ready, function(event) {
+				// Use this fix's setMedia() method.
+				self.setMedia(self.media);
+			});
+
+			// Apply Android fixes
+			if($.jPlayer.platform.android) {
+
+				// Fix playing new media immediately after setMedia.
+				this.player.bind($.jPlayer.event.progress, function(event) {
+					if(self.playFixRequired) {
+						self.playFixRequired = false;
+
+						// Enable the contols again
+						// self.player.jPlayer('option', 'cssSelectorAncestor', self.cssSelectorAncestor);
+
+						// Play if required, otherwise it will wait for the normal GUI input.
+						if(self.playFix) {
+							self.playFix = false;
+							$(this).jPlayer("play");
+						}
+					}
+				});
+				// Fix missing ended events.
+				this.player.bind($.jPlayer.event.ended, function(event) {
+					if(self.endedFix) {
+						self.endedFix = false;
+						setTimeout(function() {
+							self.setMedia(self.media);
+						},0);
+						// what if it was looping?
+					}
+				});
+				this.player.bind($.jPlayer.event.pause, function(event) {
+					if(self.endedFix) {
+						var remaining = event.jPlayer.status.duration - event.jPlayer.status.currentTime;
+						if(event.jPlayer.status.currentTime === 0 || remaining < 1) {
+							// Trigger the ended event from inside jplayer instance.
+							setTimeout(function() {
+								self.jPlayer._trigger($.jPlayer.event.ended);
+							},0);
+						}
+					}
+				});
+			}
+
+			// Instance jPlayer
+			this.player.jPlayer(this.options);
+
+			// Store a local copy of the jPlayer instance's object
+			this.jPlayer = this.player.data('jPlayer');
+
+			// Store the real cssSelectorAncestor being used.
+			this.cssSelectorAncestor = this.player.jPlayer('option', 'cssSelectorAncestor');
+
+			// Apply Android fixes
+			this.resetAndroid();
+
+			return this;
+		},
+		setMedia: function(media) {
+			this.media = media;
+
+			// Apply Android fixes
+			this.resetAndroid();
+
+			// Set the media
+			this.player.jPlayer("setMedia", this.media);
+			return this;
+		},
+		play: function() {
+			// Apply Android fixes
+			if($.jPlayer.platform.android && this.playFixRequired) {
+				// Apply Android play fix, if it is required.
+				this.playFix = true;
+			} else {
+				// Other browsers play it, as does Android if the fix is no longer required.
+				this.player.jPlayer("play");
+			}
+		},
+		resetAndroid: function() {
+			// Apply Android fixes
+			if($.jPlayer.platform.android) {
+				this.playFix = false;
+				this.playFixRequired = true;
+				this.endedFix = true;
+				// Disable the controls
+				// this.player.jPlayer('option', 'cssSelectorAncestor', '#NeverFoundDisabled');
+			}
+		}
+	};
+	return fix;
+})(jQuery);
+
+$(document).ready(function(){
+
+	var myCirclePlayer = new CirclePlayer("#jquery_jplayer_1",
+	{
+		m4a: "peculiar.m4a",
+		oga: "peculiar.ogg"
+	}, {
+		cssSelectorAncestor: "#cp_container_1",
+		swfPath: "../../dist/jplayer",
+		wmode: "window",
+		keyEnabled: true
+	});
+});
+//]]>
+</script>
+        <link rel="preload" href="https://open.scdn.co/cdn/fonts/CircularSpUIv3T-Book.3466e0ec.woff2" as="font" type="font/woff2" crossorigin="">
+        <link rel="preload" href="https://open.scdn.co/cdn/fonts/CircularSpUIv3T-Bold.8d0a45cc.woff2" as="font" type="font/woff2" crossorigin="">
+        <link rel="preload" href="https://open.scdn.co/cdn/fonts/CircularSpUIv3T-Light.afd9ab26.woff2" as="font" type="font/woff2" crossorigin="">
+        <link rel="preload" href="https://open.scdn.co/cdn/fonts/spoticon_regular_2.d319d911.woff2" as="font" type="font/woff2" crossorigin="">
+        <link rel="icon" href="https://open.scdn.co/cdn/images/favicon.5cb2bd30.ico">
+        <link rel="stylesheet" href="css/style.css">
+        <title>Spotify Web App</title>
+    </head>
+    <body>
+        <div id="jquery_jplayer_1" class="cp-jplayer"></div>
+    <div class="container clearfix">
+
+
+        <aside class="">
+            <div class="navbar-aside">
+                <div class="logocell">
+                        <img class="classnone" src="img/home.svg" alt="">
+                        <span id="items2 "class="text classnone spotifyhome">Spotify</span>
+                </div>
+                <div class="logo">
+
+                    <img src="img/logo.svg" alt="">
+                </div>
+                <a id="items" class="item1 " href="#">
+                    <span class="icon-responsive">
+                        <svg class="icon-"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 5.6L8.3 9.3 4.6 5.6 0.9 9.3 4.6 13 8.3 9.3 12 13 8.3 16.7 12 20.4 15.7 16.7 12 13 15.7 9.3 12 5.6z"></path><path d="M16.8 6.7H22V11.9H16.8z" transform="rotate(-45 19.4 9.3)"></path></svg>
+                    </span>
+                    <span id="items2"class="text">Home</span>
+                </a>
+                <a id="items" class="item2 " href="#">
+                    <span class="icon-responsive">
+                        <svg class="icon-"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.9,12.2 C20.9,7.39521356 17.0047864,3.5 12.2,3.5 C7.39521356,3.5 3.5,7.39521356 3.5,12.2 C3.5,17.0047864 7.39521356,20.9 12.2,20.9 C17.0047864,20.9 20.9,17.0047864 20.9,12.2 Z M22.4,12.2 C22.4,17.8332136 17.8332136,22.4 12.2,22.4 C6.56678644,22.4 2,17.8332136 2,12.2 C2,6.56678644 6.56678644,2 12.2,2 C17.8332136,2 22.4,6.56678644 22.4,12.2 Z"></path><path d="M7.82869925,17.5252594 L6.87509492,16.5716551 L9.83036628,9.83134582 L16.5696041,6.87542157 L17.5258411,7.827501 L14.5689784,14.5688784 L7.82869925,17.5252594 Z M13.4304216,13.4303216 L15.3530179,9.04697723 L10.9690337,10.9698542 L9.04734145,15.352802 L13.4304216,13.4303216 Z"></path></svg>
+                    </span>
+                    <span id="items2" class="text">Explore</span>
+                </a>
+                <a id="items" class="item3 " href="#">
+                    <span class="icon-responsive">
+                        <svg class="icon-"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M1.8,3.6V20.4H22.2V3.6ZM20.7,18.9H3.3V5.1H20.7Z"></path><path d="M9.67,7.9v8.2L15.83,12Zm1.5,2.8L13.12,12l-1.95,1.3Z"></path></svg>
+                    </span>
+                    <span id="items2" class="text">Videos</span>
+                </a>
+                <div class="sectioncollection">
+                    <div class="headeritem">
+                        MY COLLECTION
+                    </div>
+                    <a id="items" class="item1 " href="#">
+                            <svg class="icon-" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2.25,12A9.73,9.73,0,0,1,6.59,3.89L5.76,2.64a11.25,11.25,0,0,0,0,18.72l.83-1.25A9.73,9.73,0,0,1,2.25,12Z"></path><path d="M18.24,2.64l-.83,1.25a9.75,9.75,0,0,1,0,16.22l.83,1.25a11.25,11.25,0,0,0,0-18.72Z"></path><path d="M9.37,8,8.53,6.8a6.25,6.25,0,0,0,0,10.4L9.37,16a4.75,4.75,0,0,1,0-7.9Z"></path><path d="M15.47,6.8,14.63,8a4.75,4.75,0,0,1,0,7.9l.83,1.25a6.25,6.25,0,0,0,0-10.4Z"></path><circle cx="12" cy="12" r="1.5"></circle></svg>
+                        <span class="text">My Mix</span>
+                    </a>
+                    <a id="items" class="item1 " href="#">
+                            <svg class="icon-" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.75,15a3.71,3.71,0,0,0-2.25-.77A3.75,3.75,0,1,0,8.25,18V3H6.75ZM4.5,20.25A2.25,2.25,0,1,1,6.75,18,2.25,2.25,0,0,1,4.5,20.25Z"></path><path d="M12 14.8H21V16.3H12z"></path><path d="M12 6.8H23V8.3H12z"></path><path d="M12 10.8H22V12.3H12z"></path></svg>
+                        <span class="text">Playlists</span>
+                    </a>
+                    <a id="items" class="item1 " href="#">
+                            <svg class="icon-"xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,5.63A10.2,10.2,0,0,0,4,18.37a10.13,10.13,0,0,0,6.84,3.77A10.42,10.42,0,0,0,12,22.2,10.2,10.2,0,0,0,20,5.63ZM20.65,13A8.7,8.7,0,1,1,12,3.3a8.79,8.79,0,0,1,1,.05A8.7,8.7,0,0,1,20.65,13Z"></path><path d="M12,9a3,3,0,1,0,3,3A3,3,0,0,0,12,9Zm0,4.5A1.5,1.5,0,1,1,13.5,12,1.5,1.5,0,0,1,12,13.5Z"></path></svg>
+                        <span class="text">Albums</span>
+                    </a>
+                    <a id="items" class="item1 " href="#">
+                            <svg class="icon-" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.1,4.65V15.91a3.45,3.45,0,1,0,1.5,2.84V5.85L19.8,3.49V14.11A3.45,3.45,0,1,0,21.3,17V1.61Zm-2,16a2,2,0,1,1,2-2A2,2,0,0,1,6.15,20.7Zm11.7-1.8A1.95,1.95,0,1,1,19.8,17,2,2,0,0,1,17.85,18.9Z"></path></svg>
+                        <span class="text">Tracks</span>
+                    </a>
+                    <a id="items" class="item1 " href="#">
+                            <svg class="icon-" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M1.8,3.6V20.4H22.2V3.6ZM20.7,18.9H3.3V5.1H20.7Z"></path><path d="M9.67,7.9v8.2L15.83,12Zm1.5,2.8L13.12,12l-1.95,1.3Z"></path></svg>
+                        <span class="text">Videos</span>
+                    </a>
+                    <a id="items" class="item1 " href="#">
+                            <svg class="icon-"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,4.22a5.67,5.67,0,0,0-9.68,4.57l-8,9.79,3.3,3.3,9.79-8c.18,0,.36.05.55.05a5.7,5.7,0,0,0,4-9.73ZM5.74,19.86,4.36,18.48l6.44-7.89a5.48,5.48,0,0,0,2.83,2.84Zm13.21-8.65a4.2,4.2,0,1,1,0-5.94A4.17,4.17,0,0,1,18.95,11.22Z"></path></svg>
+                        <span class="text">Artists</span>
+                    </a>
+                </div>
+                <div class="sectioncollection">
+                    <div class="headeritem">
+                        MY PLAYLISTS
+                    </div>
+                    <a id="items" class="item1 " href="#">
+                            <svg class="iconi"  xmlns="http://www.w3.org/2000/svg" class="iconPlus--13wHf" viewBox="0 0 24 24"><path d="M17 11.3L12.8 11.3 12.8 7 11.3 7 11.3 11.3 7 11.3 7 12.8 11.3 12.8 11.3 17 12.8 17 12.8 12.8 17 12.8 17 11.3z"></path></svg>
+                        <span class="text">Create new playlists</span>
+                    </a>
+                    <a id="items" class="item1 " href="#">
+
+                        <span class="text">Sigala Radio</span>
+                    </a>
+                    <a id="items" class="item1 " href="#">
+                        <span class="text">Major Lazer Essential</span>
+                    </a>
+                    <a id="items" class="item1 " href="#">
+                        <span class="text">Onerepublic Essential</span>
+                    </a>
+                    <a id="items" class="item1 " href="#">
+                        <span class="text">Justin Bieber Essential</span>
+                    </a>
+                    <a id="items" class="item1 " href="#">
+                        <span class="text">SummerHits:2018</span>
+                    </a>
+                </div>
+            </div>
+
+        </aside>
+
+
+
+
+        <main>
+            <header class="navigationbarrow">
+
+                    <div class="homebar">
+                        <span class="icon-noresposive">
+                            <svg class="icon-  playerhover1" xmlns="http://www.w3.org/2000/svg" class="icon--2WIxM" viewBox="0 0 24 24"><path d="M20 11.3L7.8 11.3 13.5 5.5 12.5 4.5 4.9 12 12.5 19.5 13.5 18.5 7.8 12.8 20 12.8 20 11.3z"></path></svg>
+                            <svg class="icon-  playerhover1" xmlns="http://www.w3.org/2000/svg" class="icon--2WIxM" viewBox="0 0 24 24"><path d="M11.5 4.5L10.5 5.5 16.2 11.3 4 11.3 4 12.8 16.2 12.8 10.5 18.5 11.5 19.5 19.1 12 11.5 4.5z"></path></svg>
+                        </span>
+                    <a class="home" href="#">Home</a>
+                    </div>
+                    <div class="">
+                        <form class="clearfix searchform">
+                          <label for="search-box">
+                                <span class="icon- fa fa-search fa-flip-horizontal"></span>
+                          </label>
+                                <input type="search" id="search-box" placeholder="" />
+                        </form>
+                    </div>
+
+            </header>
+            <div class="contentmain">
+                <h4>Featured</h4>
+            </div>
+            <div class="itemcontainer">
+                <div class="containeritemilmegliodelpeggio">
+                    <div class="itemcontainer-1">
+                        <div class="image1">
+                            <!-- <div class="overlay">
+                                <span id="scrittehover">Scopri la nuova musica italiana</span>
+                            </div> -->
+                            <img src="https://resources.tidal.com/images/47348ca1/f6db/43f2/bad9/80ad90e49de7/1100x800.jpg" alt="">
+                        </div>
+
+                        <div class="descrizioni">
+                        <h5 class="playlist_write">PLAYLIST</h5>
+                        <h5 class="playlist_write2">Il meglio della musica in FM</h5>
+                        <h5 class="playlist_write3">Con il nuovo singolo di Achille Lauro</h5>
+                        </div>
+                    </div>
+                    <div class="itemcontainer-1">
+                        <div class="image1">
+                            <img src="https://resources.tidal.com/images/bbfc1f14/f1f1/49b5/bbd8/9a72b7e03a6e/1100x800.jpg" alt="">
+                        </div>
+                        <div class="descrizioni2">
+                        <h5 class="playlist_write">PLAYLIST</h5>
+                        <h5 class="playlist_write2">Il meglio dell'indie italiano</h5>
+                        <h5 class="playlist_write3">Con Eugenio in via di gioia</h5>
+                        </div>
+                    </div>
+                    <div class="itemcontainer-1">
+                        <div class="image1">
+                            <img src="https://resources.tidal.com/images/1f2b4603/0ab5/4f34/a143/19791bd7b214/1100x800.jpg" alt="">
+                        </div>
+                        <div class="descrizioni3">
+                        <h5 class="playlist_write">PLAYLIST</h5>
+                        <h5 class="playlist_write2">Tutto il meglio della musica italiana</h5>
+                        <h5 class="playlist_write3">Con il singolo di Elettra Laborghini</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="contentmain">
+                <h4>Mixes for you</h4>
+            </div>
+
+            <div class="itemcontainer2">
+                <div class="containeritem2">
+                    <div class="mixcontainer-2">
+                        <div class="mixcontiner-1">
+                        <svg class="cellmix" viewBox="0 0 144 144" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="grid-figure-0023e1b4f35c53e1699e6ff39682f8-clip"><rect x="0" y="0" width="144" height="144"></rect></clipPath></defs><rect x="2" y="2" width="140" height="140" fill="black"></rect><g clip-path="url(#grid-figure-0023e1b4f35c53e1699e6ff39682f8-clip)"><image xlink:href="https://resources.tidal.com/images/4cca8b88/f70c/43c0/8715/8b632a848c1c/320x320.jpg" x="103.374" y="111.696" width="62" height="62" transform="rotate(-10 103.374 111.696)"></image><image xlink:href="https://resources.tidal.com/images/aeb7fd3e/1ba2/4c61/b9b1/5468a79d927f/320x320.jpg" x="35.457" y="123.672" width="62" height="62" transform="rotate(-10 35.457 123.672)"></image><image xlink:href="https://resources.tidal.com/images/7df843dc/1c5f/4d48/af41/f879e7870588/320x320.jpg" x="-32.4619" y="135.647" width="62" height="62" transform="rotate(-10 -32.4619 135.647)"></image><image xlink:href="https://resources.tidal.com/images/0ba5a64f/3b0d/452c/8469/ad802ce803b3/320x320.jpg" x="60.8359" y="49.1675" width="62" height="62" transform="rotate(-10 60.8359 49.1675)"></image><image xlink:href="https://resources.tidal.com/images/1d474753/9064/4a6f/a29a/4306274d4497/320x320.jpg" x="-7.08203" y="61.1426" width="62" height="62" transform="rotate(-10 -7.08203 61.1426)"></image><text x="10.5" y="22.8" fill="#7bb3d8" class="title--3T2Pn mix--21Lfe"><tspan x="10.5" dx="0" dy="0">My Mix 1</tspan></text><path fill-rule="evenodd" clip-rule="evenodd" d="M122.532 12.7996C121.676 13.3705 120.975 14.1439 120.489 15.051C120.004 15.9582 119.75 16.9711 119.75 17.9999C119.75 19.0287 120.004 20.0417 120.489 20.9488C120.975 21.856 121.676 22.6293 122.532 23.2002L121.7 24.4481C120.639 23.7402 119.768 22.7813 119.167 21.6564C118.565 20.5316 118.25 19.2756 118.25 17.9999C118.25 16.7242 118.565 15.4682 119.167 14.3434C119.768 13.2186 120.639 12.2597 121.7 11.5518L122.532 12.7996Z" fill="#7bb3d8"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M131.511 15.051C131.025 14.1439 130.324 13.3705 129.468 12.7996L130.3 11.5518C131.361 12.2597 132.232 13.2186 132.833 14.3434C133.435 15.4682 133.75 16.7242 133.75 17.9999C133.75 19.2756 133.435 20.5316 132.833 21.6564C132.232 22.7813 131.361 23.7402 130.3 24.4481L129.468 23.2002C130.324 22.6293 131.025 21.856 131.511 20.9488C131.996 20.0417 132.25 19.0287 132.25 17.9999C132.25 16.9711 131.996 15.9582 131.511 15.051Z" fill="#7bb3d8"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M124.413 15.5734C124.014 15.8399 123.687 16.2007 123.46 16.624C123.234 17.0473 123.115 17.52 123.115 18C123.115 18.4801 123.234 18.9527 123.46 19.376C123.687 19.7993 124.014 20.1602 124.413 20.4266L123.581 21.6744C122.976 21.2709 122.48 20.7245 122.137 20.0835C121.795 19.4426 121.615 18.7269 121.615 18C121.615 17.2731 121.795 16.5575 122.137 15.9165C122.48 15.2756 122.976 14.7291 123.581 14.3257L124.413 15.5734Z" fill="#7bb3d8"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M128.567 16.624C128.341 16.2007 128.014 15.8399 127.614 15.5734L128.447 14.3257C129.051 14.7291 129.547 15.2756 129.89 15.9165C130.233 16.5575 130.412 17.2731 130.412 18C130.412 18.7269 130.233 19.4426 129.89 20.0835C129.547 20.7245 129.051 21.2709 128.447 21.6744L127.614 20.4266C128.014 20.1602 128.341 19.7993 128.567 19.376C128.794 18.9527 128.912 18.4801 128.912 18C128.912 17.52 128.794 17.0473 128.567 16.624Z" fill="#7bb3d8"></path><path d="M125.997 18.9969C126.55 18.9969 126.997 18.5491 126.997 17.9967C126.997 17.4444 126.55 16.9966 125.997 16.9966C125.445 16.9966 124.997 17.4444 124.997 17.9967C124.997 18.5491 125.445 18.9969 125.997 18.9969Z" fill="#7bb3d8"></path></g><rect x="2" y="2" width="140" height="140" fill="#7bb3d8" fill-opacity="0.2" stroke="#7bb3d8" stroke-width="4"></rect></svg>
+                        </div>
+                        <div class="descrizionimix">
+                            <a class="playlist_write2" href="#">My mix1</a>
+                            <a  class="playlist_write3" href="#">Skrillex, Marshmello..</a>
+                        </div>
+                    </div>
+                    <div class="mixcontainer-2">
+                        <div class="mixcontiner-1">
+                        <svg class="cellmix" viewBox="0 0 144 144" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="grid-figure-002b192528e267e06eb5488b578bab-clip"><rect x="0" y="0" width="144" height="144"></rect></clipPath></defs><rect x="2" y="2" width="140" height="140" fill="black"></rect><g clip-path="url(#grid-figure-002b192528e267e06eb5488b578bab-clip)"><image xlink:href="https://resources.tidal.com/images/403fa950/889b/4a55/911c/a7da7e6ad5b5/320x320.jpg" x="103.374" y="111.696" width="62" height="62" transform="rotate(-10 103.374 111.696)"></image><image xlink:href="https://resources.tidal.com/images/7eb94f52/2a28/42bb/ac35/dda5a78d087e/320x320.jpg" x="35.457" y="123.672" width="62" height="62" transform="rotate(-10 35.457 123.672)"></image><image xlink:href="https://resources.tidal.com/images/91a97986/9328/4fd1/b5f1/3195bf3deb16/320x320.jpg" x="-32.4619" y="135.647" width="62" height="62" transform="rotate(-10 -32.4619 135.647)"></image><image xlink:href="https://resources.tidal.com/images/c40836c8/3266/4b00/8274/a2ecb6ccd4ad/320x320.jpg" x="60.8359" y="49.1675" width="62" height="62" transform="rotate(-10 60.8359 49.1675)"></image><image xlink:href="https://resources.tidal.com/images/8ccbad54/19d1/45e5/9eda/6b6055c7431c/320x320.jpg" x="-7.08203" y="61.1426" width="62" height="62" transform="rotate(-10 -7.08203 61.1426)"></image><text x="10.5" y="22.8" fill="#decdaf" class="title--3T2Pn mix--21Lfe"><tspan x="10.5" dx="0" dy="0">My Mix 2</tspan></text><path fill-rule="evenodd" clip-rule="evenodd" d="M122.532 12.7996C121.676 13.3705 120.975 14.1439 120.489 15.051C120.004 15.9582 119.75 16.9711 119.75 17.9999C119.75 19.0287 120.004 20.0417 120.489 20.9488C120.975 21.856 121.676 22.6293 122.532 23.2002L121.7 24.4481C120.639 23.7402 119.768 22.7813 119.167 21.6564C118.565 20.5316 118.25 19.2756 118.25 17.9999C118.25 16.7242 118.565 15.4682 119.167 14.3434C119.768 13.2186 120.639 12.2597 121.7 11.5518L122.532 12.7996Z" fill="#decdaf"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M131.511 15.051C131.025 14.1439 130.324 13.3705 129.468 12.7996L130.3 11.5518C131.361 12.2597 132.232 13.2186 132.833 14.3434C133.435 15.4682 133.75 16.7242 133.75 17.9999C133.75 19.2756 133.435 20.5316 132.833 21.6564C132.232 22.7813 131.361 23.7402 130.3 24.4481L129.468 23.2002C130.324 22.6293 131.025 21.856 131.511 20.9488C131.996 20.0417 132.25 19.0287 132.25 17.9999C132.25 16.9711 131.996 15.9582 131.511 15.051Z" fill="#decdaf"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M124.413 15.5734C124.014 15.8399 123.687 16.2007 123.46 16.624C123.234 17.0473 123.115 17.52 123.115 18C123.115 18.4801 123.234 18.9527 123.46 19.376C123.687 19.7993 124.014 20.1602 124.413 20.4266L123.581 21.6744C122.976 21.2709 122.48 20.7245 122.137 20.0835C121.795 19.4426 121.615 18.7269 121.615 18C121.615 17.2731 121.795 16.5575 122.137 15.9165C122.48 15.2756 122.976 14.7291 123.581 14.3257L124.413 15.5734Z" fill="#decdaf"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M128.567 16.624C128.341 16.2007 128.014 15.8399 127.614 15.5734L128.447 14.3257C129.051 14.7291 129.547 15.2756 129.89 15.9165C130.233 16.5575 130.412 17.2731 130.412 18C130.412 18.7269 130.233 19.4426 129.89 20.0835C129.547 20.7245 129.051 21.2709 128.447 21.6744L127.614 20.4266C128.014 20.1602 128.341 19.7993 128.567 19.376C128.794 18.9527 128.912 18.4801 128.912 18C128.912 17.52 128.794 17.0473 128.567 16.624Z" fill="#decdaf"></path><path d="M125.997 18.9969C126.55 18.9969 126.997 18.5491 126.997 17.9967C126.997 17.4444 126.55 16.9966 125.997 16.9966C125.445 16.9966 124.997 17.4444 124.997 17.9967C124.997 18.5491 125.445 18.9969 125.997 18.9969Z" fill="#decdaf"></path></g><rect x="2" y="2" width="140" height="140" fill="#decdaf" fill-opacity="0.2" stroke="#decdaf" stroke-width="4"></rect></svg>
+                        </div>
+                        <div class="descrizionimix">
+                            <a class="playlist_write2" href="#">My mix2</a>
+                            <a  class="playlist_write3" href="#">Avicii,Major Lazer..</a>
+                        </div>
+                    </div>
+                    <div class="mixcontainer-2">
+                        <div class="mixcontiner-1">
+                        <svg class="cellmix" viewBox="0 0 144 144" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="grid-figure-002598de9ffd908ff005ae7f9eb836-clip"><rect x="0" y="0" width="144" height="144"></rect></clipPath></defs><rect x="2" y="2" width="140" height="140" fill="black"></rect><g clip-path="url(#grid-figure-002598de9ffd908ff005ae7f9eb836-clip)"><image xlink:href="https://resources.tidal.com/images/517ddffd/b8b7/4e8c/8d77/cc4d3781bd6d/320x320.jpg" x="103.374" y="111.696" width="62" height="62" transform="rotate(-10 103.374 111.696)"></image><image xlink:href="https://resources.tidal.com/images/76bae6f1/4898/411f/8e1c/2d0c998f0453/320x320.jpg" x="35.457" y="123.672" width="62" height="62" transform="rotate(-10 35.457 123.672)"></image><image xlink:href="https://resources.tidal.com/images/199170fb/3b19/4087/bab1/b0840f63cf42/320x320.jpg" x="-32.4619" y="135.647" width="62" height="62" transform="rotate(-10 -32.4619 135.647)"></image><image xlink:href="https://resources.tidal.com/images/fb584315/9382/4a12/84b6/1e4caed50d58/320x320.jpg" x="60.8359" y="49.1675" width="62" height="62" transform="rotate(-10 60.8359 49.1675)"></image><image xlink:href="https://resources.tidal.com/images/7d3a239d/a243/4aae/ae5a/11fb5ec09a7e/320x320.jpg" x="-7.08203" y="61.1426" width="62" height="62" transform="rotate(-10 -7.08203 61.1426)"></image><text x="10.5" y="22.8" fill="#f59274" class="title--3T2Pn mix--21Lfe"><tspan x="10.5" dx="0" dy="0">My Mix 3</tspan></text><path fill-rule="evenodd" clip-rule="evenodd" d="M122.532 12.7996C121.676 13.3705 120.975 14.1439 120.489 15.051C120.004 15.9582 119.75 16.9711 119.75 17.9999C119.75 19.0287 120.004 20.0417 120.489 20.9488C120.975 21.856 121.676 22.6293 122.532 23.2002L121.7 24.4481C120.639 23.7402 119.768 22.7813 119.167 21.6564C118.565 20.5316 118.25 19.2756 118.25 17.9999C118.25 16.7242 118.565 15.4682 119.167 14.3434C119.768 13.2186 120.639 12.2597 121.7 11.5518L122.532 12.7996Z" fill="#f59274"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M131.511 15.051C131.025 14.1439 130.324 13.3705 129.468 12.7996L130.3 11.5518C131.361 12.2597 132.232 13.2186 132.833 14.3434C133.435 15.4682 133.75 16.7242 133.75 17.9999C133.75 19.2756 133.435 20.5316 132.833 21.6564C132.232 22.7813 131.361 23.7402 130.3 24.4481L129.468 23.2002C130.324 22.6293 131.025 21.856 131.511 20.9488C131.996 20.0417 132.25 19.0287 132.25 17.9999C132.25 16.9711 131.996 15.9582 131.511 15.051Z" fill="#f59274"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M124.413 15.5734C124.014 15.8399 123.687 16.2007 123.46 16.624C123.234 17.0473 123.115 17.52 123.115 18C123.115 18.4801 123.234 18.9527 123.46 19.376C123.687 19.7993 124.014 20.1602 124.413 20.4266L123.581 21.6744C122.976 21.2709 122.48 20.7245 122.137 20.0835C121.795 19.4426 121.615 18.7269 121.615 18C121.615 17.2731 121.795 16.5575 122.137 15.9165C122.48 15.2756 122.976 14.7291 123.581 14.3257L124.413 15.5734Z" fill="#f59274"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M128.567 16.624C128.341 16.2007 128.014 15.8399 127.614 15.5734L128.447 14.3257C129.051 14.7291 129.547 15.2756 129.89 15.9165C130.233 16.5575 130.412 17.2731 130.412 18C130.412 18.7269 130.233 19.4426 129.89 20.0835C129.547 20.7245 129.051 21.2709 128.447 21.6744L127.614 20.4266C128.014 20.1602 128.341 19.7993 128.567 19.376C128.794 18.9527 128.912 18.4801 128.912 18C128.912 17.52 128.794 17.0473 128.567 16.624Z" fill="#f59274"></path><path d="M125.997 18.9969C126.55 18.9969 126.997 18.5491 126.997 17.9967C126.997 17.4444 126.55 16.9966 125.997 16.9966C125.445 16.9966 124.997 17.4444 124.997 17.9967C124.997 18.5491 125.445 18.9969 125.997 18.9969Z" fill="#f59274"></path></g><rect x="2" y="2" width="140" height="140" fill="#f59274" fill-opacity="0.2" stroke="#f59274" stroke-width="4"></rect></svg>
+                        </div>
+                        <div class="descrizionimix">
+                            <a class="playlist_write2" href="#">My mix3</a>
+                            <a  class="playlist_write3" href="#">Vargas & Lagola,Kygo..</a>
+                        </div>
+                    </div>
+                    <div class="mixcontainer-2">
+                        <div class="mixcontiner-1">
+                        <svg class="cellmix" viewBox="0 0 144 144" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="grid-figure-002a6a5f1d0a5b5ee9e5ff10c805fb-clip"><rect x="0" y="0" width="144" height="144"></rect></clipPath></defs><rect x="2" y="2" width="140" height="140" fill="black"></rect><g clip-path="url(#grid-figure-002a6a5f1d0a5b5ee9e5ff10c805fb-clip)"><image xlink:href="https://resources.tidal.com/images/b8ba28e6/9242/4f8c/a639/f429e9cfc01f/320x320.jpg" x="103.374" y="111.696" width="62" height="62" transform="rotate(-10 103.374 111.696)"></image><image xlink:href="https://resources.tidal.com/images/446f592f/e64f/40eb/bce0/d4aa25d4c7f3/320x320.jpg" x="35.457" y="123.672" width="62" height="62" transform="rotate(-10 35.457 123.672)"></image><image xlink:href="https://resources.tidal.com/images/d22750ec/3a9d/4c90/b297/a713286d5f0b/320x320.jpg" x="-32.4619" y="135.647" width="62" height="62" transform="rotate(-10 -32.4619 135.647)"></image><image xlink:href="https://resources.tidal.com/images/8cf1fb64/1c15/44be/9174/4ce3e83cac3c/320x320.jpg" x="60.8359" y="49.1675" width="62" height="62" transform="rotate(-10 60.8359 49.1675)"></image><image xlink:href="https://resources.tidal.com/images/bf6c625b/7244/40c2/8542/8406bb6797b9/320x320.jpg" x="-7.08203" y="61.1426" width="62" height="62" transform="rotate(-10 -7.08203 61.1426)"></image><text x="10.5" y="22.8" fill="#e9c94e" class="title--3T2Pn mix--21Lfe"><tspan x="10.5" dx="0" dy="0">My Mix 4</tspan></text><path fill-rule="evenodd" clip-rule="evenodd" d="M122.532 12.7996C121.676 13.3705 120.975 14.1439 120.489 15.051C120.004 15.9582 119.75 16.9711 119.75 17.9999C119.75 19.0287 120.004 20.0417 120.489 20.9488C120.975 21.856 121.676 22.6293 122.532 23.2002L121.7 24.4481C120.639 23.7402 119.768 22.7813 119.167 21.6564C118.565 20.5316 118.25 19.2756 118.25 17.9999C118.25 16.7242 118.565 15.4682 119.167 14.3434C119.768 13.2186 120.639 12.2597 121.7 11.5518L122.532 12.7996Z" fill="#e9c94e"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M131.511 15.051C131.025 14.1439 130.324 13.3705 129.468 12.7996L130.3 11.5518C131.361 12.2597 132.232 13.2186 132.833 14.3434C133.435 15.4682 133.75 16.7242 133.75 17.9999C133.75 19.2756 133.435 20.5316 132.833 21.6564C132.232 22.7813 131.361 23.7402 130.3 24.4481L129.468 23.2002C130.324 22.6293 131.025 21.856 131.511 20.9488C131.996 20.0417 132.25 19.0287 132.25 17.9999C132.25 16.9711 131.996 15.9582 131.511 15.051Z" fill="#e9c94e"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M124.413 15.5734C124.014 15.8399 123.687 16.2007 123.46 16.624C123.234 17.0473 123.115 17.52 123.115 18C123.115 18.4801 123.234 18.9527 123.46 19.376C123.687 19.7993 124.014 20.1602 124.413 20.4266L123.581 21.6744C122.976 21.2709 122.48 20.7245 122.137 20.0835C121.795 19.4426 121.615 18.7269 121.615 18C121.615 17.2731 121.795 16.5575 122.137 15.9165C122.48 15.2756 122.976 14.7291 123.581 14.3257L124.413 15.5734Z" fill="#e9c94e"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M128.567 16.624C128.341 16.2007 128.014 15.8399 127.614 15.5734L128.447 14.3257C129.051 14.7291 129.547 15.2756 129.89 15.9165C130.233 16.5575 130.412 17.2731 130.412 18C130.412 18.7269 130.233 19.4426 129.89 20.0835C129.547 20.7245 129.051 21.2709 128.447 21.6744L127.614 20.4266C128.014 20.1602 128.341 19.7993 128.567 19.376C128.794 18.9527 128.912 18.4801 128.912 18C128.912 17.52 128.794 17.0473 128.567 16.624Z" fill="#e9c94e"></path><path d="M125.997 18.9969C126.55 18.9969 126.997 18.5491 126.997 17.9967C126.997 17.4444 126.55 16.9966 125.997 16.9966C125.445 16.9966 124.997 17.4444 124.997 17.9967C124.997 18.5491 125.445 18.9969 125.997 18.9969Z" fill="#e9c94e"></path></g><rect x="2" y="2" width="140" height="140" fill="#e9c94e" fill-opacity="0.2" stroke="#e9c94e" stroke-width="4"></rect></svg>
+                        </div>
+                        <div class="descrizionimix">
+                            <a class="playlist_write2" href="#">My mix4</a>
+                            <a  class="playlist_write3" href="#">PooBear,Justin Bieber..</a>
+                        </div>
+                    </div>
+                    <div class="mixcontainer-2">
+                        <div class="mixcontiner-1">
+                        <svg class="cellmix" viewBox="0 0 144 144" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="grid-figure-002c1a45d7f35dbb81eed7cc612955-clip"><rect x="0" y="0" width="144" height="144"></rect></clipPath></defs><rect x="2" y="2" width="140" height="140" fill="black"></rect><g clip-path="url(#grid-figure-002c1a45d7f35dbb81eed7cc612955-clip)"><image xlink:href="https://resources.tidal.com/images/303fac3a/e8ca/4de6/a17d/e2a921d2cebd/320x320.jpg" x="103.374" y="111.696" width="62" height="62" transform="rotate(-10 103.374 111.696)"></image><image xlink:href="https://resources.tidal.com/images/05d72ae4/319f/4237/821f/1d7af9ec8acf/320x320.jpg" x="35.457" y="123.672" width="62" height="62" transform="rotate(-10 35.457 123.672)"></image><image xlink:href="https://resources.tidal.com/images/bacd811f/436c/42ff/b92e/93b415cce7c4/320x320.jpg" x="-32.4619" y="135.647" width="62" height="62" transform="rotate(-10 -32.4619 135.647)"></image><image xlink:href="https://resources.tidal.com/images/7e93738b/8024/4943/903d/042d213ea4b0/320x320.jpg" x="60.8359" y="49.1675" width="62" height="62" transform="rotate(-10 60.8359 49.1675)"></image><image xlink:href="https://resources.tidal.com/images/253875af/7427/4116/8a5e/e51234e78f77/320x320.jpg" x="-7.08203" y="61.1426" width="62" height="62" transform="rotate(-10 -7.08203 61.1426)"></image><text x="10.5" y="22.8" fill="#eedbb1" class="title--3T2Pn mix--21Lfe"><tspan x="10.5" dx="0" dy="0">My Mix 5</tspan></text><path fill-rule="evenodd" clip-rule="evenodd" d="M122.532 12.7996C121.676 13.3705 120.975 14.1439 120.489 15.051C120.004 15.9582 119.75 16.9711 119.75 17.9999C119.75 19.0287 120.004 20.0417 120.489 20.9488C120.975 21.856 121.676 22.6293 122.532 23.2002L121.7 24.4481C120.639 23.7402 119.768 22.7813 119.167 21.6564C118.565 20.5316 118.25 19.2756 118.25 17.9999C118.25 16.7242 118.565 15.4682 119.167 14.3434C119.768 13.2186 120.639 12.2597 121.7 11.5518L122.532 12.7996Z" fill="#eedbb1"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M131.511 15.051C131.025 14.1439 130.324 13.3705 129.468 12.7996L130.3 11.5518C131.361 12.2597 132.232 13.2186 132.833 14.3434C133.435 15.4682 133.75 16.7242 133.75 17.9999C133.75 19.2756 133.435 20.5316 132.833 21.6564C132.232 22.7813 131.361 23.7402 130.3 24.4481L129.468 23.2002C130.324 22.6293 131.025 21.856 131.511 20.9488C131.996 20.0417 132.25 19.0287 132.25 17.9999C132.25 16.9711 131.996 15.9582 131.511 15.051Z" fill="#eedbb1"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M124.413 15.5734C124.014 15.8399 123.687 16.2007 123.46 16.624C123.234 17.0473 123.115 17.52 123.115 18C123.115 18.4801 123.234 18.9527 123.46 19.376C123.687 19.7993 124.014 20.1602 124.413 20.4266L123.581 21.6744C122.976 21.2709 122.48 20.7245 122.137 20.0835C121.795 19.4426 121.615 18.7269 121.615 18C121.615 17.2731 121.795 16.5575 122.137 15.9165C122.48 15.2756 122.976 14.7291 123.581 14.3257L124.413 15.5734Z" fill="#eedbb1"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M128.567 16.624C128.341 16.2007 128.014 15.8399 127.614 15.5734L128.447 14.3257C129.051 14.7291 129.547 15.2756 129.89 15.9165C130.233 16.5575 130.412 17.2731 130.412 18C130.412 18.7269 130.233 19.4426 129.89 20.0835C129.547 20.7245 129.051 21.2709 128.447 21.6744L127.614 20.4266C128.014 20.1602 128.341 19.7993 128.567 19.376C128.794 18.9527 128.912 18.4801 128.912 18C128.912 17.52 128.794 17.0473 128.567 16.624Z" fill="#eedbb1"></path><path d="M125.997 18.9969C126.55 18.9969 126.997 18.5491 126.997 17.9967C126.997 17.4444 126.55 16.9966 125.997 16.9966C125.445 16.9966 124.997 17.4444 124.997 17.9967C124.997 18.5491 125.445 18.9969 125.997 18.9969Z" fill="#eedbb1"></path></g><rect x="2" y="2" width="140" height="140" fill="#eedbb1" fill-opacity="0.2" stroke="#eedbb1" stroke-width="4"></rect></svg>
+                        </div>
+                        <div class="descrizionimix">
+                            <a class="playlist_write2" href="#">My mix5</a>
+                            <a  class="playlist_write3" href="#">Jonas Brothers,Ryan..</a>
+                        </div>
+                    </div>
+                    <div class="mixcontainer-2">
+                        <div class="mixcontiner-1">
+                        <svg class="cellmix" viewBox="0 0 144 144" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="grid-figure-002873e5c9a63ec705375d7c1fc62a-clip"><rect x="0" y="0" width="144" height="144"></rect></clipPath></defs><rect x="2" y="2" width="140" height="140" fill="black"></rect><g clip-path="url(#grid-figure-002873e5c9a63ec705375d7c1fc62a-clip)"><image xlink:href="https://resources.tidal.com/images/aeb7fd3e/1ba2/4c61/b9b1/5468a79d927f/320x320.jpg" x="103.374" y="111.696" width="62" height="62" transform="rotate(-10 103.374 111.696)"></image><image xlink:href="https://resources.tidal.com/images/3f64dbc5/827e/445c/b093/336f68c27c9e/320x320.jpg" x="35.457" y="123.672" width="62" height="62" transform="rotate(-10 35.457 123.672)"></image><image xlink:href="https://resources.tidal.com/images/752aaa6d/6be1/43ab/b9ec/91df60ae6408/320x320.jpg" x="-32.4619" y="135.647" width="62" height="62" transform="rotate(-10 -32.4619 135.647)"></image><image xlink:href="https://resources.tidal.com/images/6e5a7b60/3e57/4edb/9a38/1b19e2f72a6c/320x320.jpg" x="60.8359" y="49.1675" width="62" height="62" transform="rotate(-10 60.8359 49.1675)"></image><image xlink:href="https://resources.tidal.com/images/8a1d1c40/d87c/4ab9/97f2/d52acc61df6f/320x320.jpg" x="-7.08203" y="61.1426" width="62" height="62" transform="rotate(-10 -7.08203 61.1426)"></image><text x="10.5" y="22.8" fill="#f75e25" class="title--3T2Pn mix--21Lfe"><tspan x="10.5" dx="0" dy="0">My Mix 6</tspan></text><path fill-rule="evenodd" clip-rule="evenodd" d="M122.532 12.7996C121.676 13.3705 120.975 14.1439 120.489 15.051C120.004 15.9582 119.75 16.9711 119.75 17.9999C119.75 19.0287 120.004 20.0417 120.489 20.9488C120.975 21.856 121.676 22.6293 122.532 23.2002L121.7 24.4481C120.639 23.7402 119.768 22.7813 119.167 21.6564C118.565 20.5316 118.25 19.2756 118.25 17.9999C118.25 16.7242 118.565 15.4682 119.167 14.3434C119.768 13.2186 120.639 12.2597 121.7 11.5518L122.532 12.7996Z" fill="#f75e25"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M131.511 15.051C131.025 14.1439 130.324 13.3705 129.468 12.7996L130.3 11.5518C131.361 12.2597 132.232 13.2186 132.833 14.3434C133.435 15.4682 133.75 16.7242 133.75 17.9999C133.75 19.2756 133.435 20.5316 132.833 21.6564C132.232 22.7813 131.361 23.7402 130.3 24.4481L129.468 23.2002C130.324 22.6293 131.025 21.856 131.511 20.9488C131.996 20.0417 132.25 19.0287 132.25 17.9999C132.25 16.9711 131.996 15.9582 131.511 15.051Z" fill="#f75e25"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M124.413 15.5734C124.014 15.8399 123.687 16.2007 123.46 16.624C123.234 17.0473 123.115 17.52 123.115 18C123.115 18.4801 123.234 18.9527 123.46 19.376C123.687 19.7993 124.014 20.1602 124.413 20.4266L123.581 21.6744C122.976 21.2709 122.48 20.7245 122.137 20.0835C121.795 19.4426 121.615 18.7269 121.615 18C121.615 17.2731 121.795 16.5575 122.137 15.9165C122.48 15.2756 122.976 14.7291 123.581 14.3257L124.413 15.5734Z" fill="#f75e25"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M128.567 16.624C128.341 16.2007 128.014 15.8399 127.614 15.5734L128.447 14.3257C129.051 14.7291 129.547 15.2756 129.89 15.9165C130.233 16.5575 130.412 17.2731 130.412 18C130.412 18.7269 130.233 19.4426 129.89 20.0835C129.547 20.7245 129.051 21.2709 128.447 21.6744L127.614 20.4266C128.014 20.1602 128.341 19.7993 128.567 19.376C128.794 18.9527 128.912 18.4801 128.912 18C128.912 17.52 128.794 17.0473 128.567 16.624Z" fill="#f75e25"></path><path d="M125.997 18.9969C126.55 18.9969 126.997 18.5491 126.997 17.9967C126.997 17.4444 126.55 16.9966 125.997 16.9966C125.445 16.9966 124.997 17.4444 124.997 17.9967C124.997 18.5491 125.445 18.9969 125.997 18.9969Z" fill="#f75e25"></path></g><rect x="2" y="2" width="140" height="140" fill="#f75e25" fill-opacity="0.2" stroke="#f75e25" stroke-width="4"></rect></svg>
+                        </div>
+                        <div class="descrizionimix">
+                            <a class="playlist_write2" href="#">My mix6</a>
+                            <a  class="playlist_write3" href="#">Cash-Cash, Tiesto..</a>
+                        </div>
+                    </div>
+                    <div class="mixcontainer-2">
+                        <div class="mixcontiner-1">
+                        <svg class="cellmix" viewBox="0 0 144 144" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="grid-figure-0023448c4b4109bc43312581ba31cd-clip"><rect x="0" y="0" width="144" height="144"></rect></clipPath></defs><rect x="2" y="2" width="140" height="140" fill="black"></rect><g clip-path="url(#grid-figure-0023448c4b4109bc43312581ba31cd-clip)"><image xlink:href="https://resources.tidal.com/images/b6118e97/a99b/4750/bd0b/9b3a96ab06af/320x320.jpg" x="103.374" y="111.696" width="62" height="62" transform="rotate(-10 103.374 111.696)"></image><image xlink:href="https://resources.tidal.com/images/9ef3f11a/7341/45e1/9d2f/e2d5b646b516/320x320.jpg" x="35.457" y="123.672" width="62" height="62" transform="rotate(-10 35.457 123.672)"></image><image xlink:href="https://resources.tidal.com/images/5b4b2aaf/93de/43c4/8984/203b6867183e/320x320.jpg" x="-32.4619" y="135.647" width="62" height="62" transform="rotate(-10 -32.4619 135.647)"></image><image xlink:href="https://resources.tidal.com/images/a7c94a32/a319/4c86/95c9/ca7e7718cee2/320x320.jpg" x="60.8359" y="49.1675" width="62" height="62" transform="rotate(-10 60.8359 49.1675)"></image><image xlink:href="https://resources.tidal.com/images/56bce076/6c60/4697/906d/430f1a02599c/320x320.jpg" x="-7.08203" y="61.1426" width="62" height="62" transform="rotate(-10 -7.08203 61.1426)"></image><text x="10.5" y="22.8" fill="#9bb7d1" class="title--3T2Pn mix--21Lfe"><tspan x="10.5" dx="0" dy="0">My Mix 7</tspan></text><path fill-rule="evenodd" clip-rule="evenodd" d="M122.532 12.7996C121.676 13.3705 120.975 14.1439 120.489 15.051C120.004 15.9582 119.75 16.9711 119.75 17.9999C119.75 19.0287 120.004 20.0417 120.489 20.9488C120.975 21.856 121.676 22.6293 122.532 23.2002L121.7 24.4481C120.639 23.7402 119.768 22.7813 119.167 21.6564C118.565 20.5316 118.25 19.2756 118.25 17.9999C118.25 16.7242 118.565 15.4682 119.167 14.3434C119.768 13.2186 120.639 12.2597 121.7 11.5518L122.532 12.7996Z" fill="#9bb7d1"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M131.511 15.051C131.025 14.1439 130.324 13.3705 129.468 12.7996L130.3 11.5518C131.361 12.2597 132.232 13.2186 132.833 14.3434C133.435 15.4682 133.75 16.7242 133.75 17.9999C133.75 19.2756 133.435 20.5316 132.833 21.6564C132.232 22.7813 131.361 23.7402 130.3 24.4481L129.468 23.2002C130.324 22.6293 131.025 21.856 131.511 20.9488C131.996 20.0417 132.25 19.0287 132.25 17.9999C132.25 16.9711 131.996 15.9582 131.511 15.051Z" fill="#9bb7d1"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M124.413 15.5734C124.014 15.8399 123.687 16.2007 123.46 16.624C123.234 17.0473 123.115 17.52 123.115 18C123.115 18.4801 123.234 18.9527 123.46 19.376C123.687 19.7993 124.014 20.1602 124.413 20.4266L123.581 21.6744C122.976 21.2709 122.48 20.7245 122.137 20.0835C121.795 19.4426 121.615 18.7269 121.615 18C121.615 17.2731 121.795 16.5575 122.137 15.9165C122.48 15.2756 122.976 14.7291 123.581 14.3257L124.413 15.5734Z" fill="#9bb7d1"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M128.567 16.624C128.341 16.2007 128.014 15.8399 127.614 15.5734L128.447 14.3257C129.051 14.7291 129.547 15.2756 129.89 15.9165C130.233 16.5575 130.412 17.2731 130.412 18C130.412 18.7269 130.233 19.4426 129.89 20.0835C129.547 20.7245 129.051 21.2709 128.447 21.6744L127.614 20.4266C128.014 20.1602 128.341 19.7993 128.567 19.376C128.794 18.9527 128.912 18.4801 128.912 18C128.912 17.52 128.794 17.0473 128.567 16.624Z" fill="#9bb7d1"></path><path d="M125.997 18.9969C126.55 18.9969 126.997 18.5491 126.997 17.9967C126.997 17.4444 126.55 16.9966 125.997 16.9966C125.445 16.9966 124.997 17.4444 124.997 17.9967C124.997 18.5491 125.445 18.9969 125.997 18.9969Z" fill="#9bb7d1"></path></g><rect x="2" y="2" width="140" height="140" fill="#9bb7d1" fill-opacity="0.2" stroke="#9bb7d1" stroke-width="4"></rect></svg>
+                        </div>
+                        <div class="descrizionimix">
+                            <a class="playlist_write2" href="#">My mix7</a>
+                            <a  class="playlist_write3" href="#">Jonas Blue..</a>
+                        </div>
+                    </div>
+                    <div class="mixcontainer-2">
+                        <div class="mixcontiner-1">
+                        <svg class="cellmix" viewBox="0 0 144 144" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="grid-figure-0024f1ceed767d626eddfd7d6cacb2-clip"><rect x="0" y="0" width="144" height="144"></rect></clipPath></defs><rect x="2" y="2" width="140" height="140" fill="black"></rect><g clip-path="url(#grid-figure-0024f1ceed767d626eddfd7d6cacb2-clip)"><image xlink:href="https://resources.tidal.com/images/3709d5ca/13d2/48c9/878c/f96ce4800444/320x320.jpg" x="103.374" y="111.696" width="62" height="62" transform="rotate(-10 103.374 111.696)"></image><image xlink:href="https://resources.tidal.com/images/4eda78e9/33b7/4942/a94c/8a4fd3136f27/320x320.jpg" x="35.457" y="123.672" width="62" height="62" transform="rotate(-10 35.457 123.672)"></image><image xlink:href="https://resources.tidal.com/images/24d16413/97fd/4c32/9ad0/4d110cf9ccd7/320x320.jpg" x="-32.4619" y="135.647" width="62" height="62" transform="rotate(-10 -32.4619 135.647)"></image><image xlink:href="https://resources.tidal.com/images/69f85742/48e3/4b4b/8573/c95dc83d31b4/320x320.jpg" x="60.8359" y="49.1675" width="62" height="62" transform="rotate(-10 60.8359 49.1675)"></image><image xlink:href="https://resources.tidal.com/images/afaf65d2/5b28/4597/a5e7/c19e497a05a9/320x320.jpg" x="-7.08203" y="61.1426" width="62" height="62" transform="rotate(-10 -7.08203 61.1426)"></image><text x="10.5" y="22.8" fill="#eb97bb" class="title--3T2Pn mix--21Lfe"><tspan x="10.5" dx="0" dy="0">My Mix 8</tspan></text><path fill-rule="evenodd" clip-rule="evenodd" d="M122.532 12.7996C121.676 13.3705 120.975 14.1439 120.489 15.051C120.004 15.9582 119.75 16.9711 119.75 17.9999C119.75 19.0287 120.004 20.0417 120.489 20.9488C120.975 21.856 121.676 22.6293 122.532 23.2002L121.7 24.4481C120.639 23.7402 119.768 22.7813 119.167 21.6564C118.565 20.5316 118.25 19.2756 118.25 17.9999C118.25 16.7242 118.565 15.4682 119.167 14.3434C119.768 13.2186 120.639 12.2597 121.7 11.5518L122.532 12.7996Z" fill="#eb97bb"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M131.511 15.051C131.025 14.1439 130.324 13.3705 129.468 12.7996L130.3 11.5518C131.361 12.2597 132.232 13.2186 132.833 14.3434C133.435 15.4682 133.75 16.7242 133.75 17.9999C133.75 19.2756 133.435 20.5316 132.833 21.6564C132.232 22.7813 131.361 23.7402 130.3 24.4481L129.468 23.2002C130.324 22.6293 131.025 21.856 131.511 20.9488C131.996 20.0417 132.25 19.0287 132.25 17.9999C132.25 16.9711 131.996 15.9582 131.511 15.051Z" fill="#eb97bb"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M124.413 15.5734C124.014 15.8399 123.687 16.2007 123.46 16.624C123.234 17.0473 123.115 17.52 123.115 18C123.115 18.4801 123.234 18.9527 123.46 19.376C123.687 19.7993 124.014 20.1602 124.413 20.4266L123.581 21.6744C122.976 21.2709 122.48 20.7245 122.137 20.0835C121.795 19.4426 121.615 18.7269 121.615 18C121.615 17.2731 121.795 16.5575 122.137 15.9165C122.48 15.2756 122.976 14.7291 123.581 14.3257L124.413 15.5734Z" fill="#eb97bb"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M128.567 16.624C128.341 16.2007 128.014 15.8399 127.614 15.5734L128.447 14.3257C129.051 14.7291 129.547 15.2756 129.89 15.9165C130.233 16.5575 130.412 17.2731 130.412 18C130.412 18.7269 130.233 19.4426 129.89 20.0835C129.547 20.7245 129.051 21.2709 128.447 21.6744L127.614 20.4266C128.014 20.1602 128.341 19.7993 128.567 19.376C128.794 18.9527 128.912 18.4801 128.912 18C128.912 17.52 128.794 17.0473 128.567 16.624Z" fill="#eb97bb"></path><path d="M125.997 18.9969C126.55 18.9969 126.997 18.5491 126.997 17.9967C126.997 17.4444 126.55 16.9966 125.997 16.9966C125.445 16.9966 124.997 17.4444 124.997 17.9967C124.997 18.5491 125.445 18.9969 125.997 18.9969Z" fill="#eb97bb"></path></g><rect x="2" y="2" width="140" height="140" fill="#eb97bb" fill-opacity="0.2" stroke="#eb97bb" stroke-width="4"></rect></svg>
+                        </div>
+                        <div class="descrizionimix">
+                            <a class="playlist_write2" href="#">My mix8</a>
+                            <a  class="playlist_write3" href="#">Sam Smith, Wrabel..</a>
+                        </div>
+                    </div>
+
+
+
+                </div>
+
+            </div>
+            <div class="contentmain">
+                <h4>Ascoltati di recente</h4>
+            </div>
+
+            <div class="itemcontainer2">
+                <div class="containeritem2">
+                    <div class="mixcontainer-2">
+                        <div class="mixcontiner-1">
+                            <div class="image2 cellmix2hover">
+                                <img class="" src="https://resources.tidal.com/images/20d2d836/9921/4bcd/b1fa/4ff90e114a8f/320x320.jpg" alt="">
+                            </div>
+                        </div>
+                        <div class="descrizionimix">
+                            <a class="playlist_write2" href="#">Avicii (01)</a>
+                            <a  class="playlist_write3" href="#">AVICII</a>
+                        </div>
+                    </div>
+                    <div class="mixcontainer-2">
+                        <div class="mixcontiner-1">
+                        <svg class="cellmix" viewBox="0 0 144 144" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="grid-figure-0016019dd94e29b2c90694a2d44f69-clip"><rect width="136" height="136" fill="white" transform="translate(4 4)"></rect></clipPath></defs><rect x="2" y="2" width="140" height="140" fill="black"></rect><rect x="2" y="2" width="140" height="140" fill="#FFFFFF" fill-opacity="0.2" stroke="#FFFFFF" stroke-width="4"></rect><g clip-path="url(#grid-figure-0016019dd94e29b2c90694a2d44f69-clip)"><image xlink:href="https://resources.tidal.com/images/28882d04/d49b/422d/b695/7ba4f1104471/320x320.jpg" x="16.0674" y="56.918" width="114" height="114" transform="rotate(-10 16.0674 56.918)"></image><text x="10.5" y="22.8" fill="#FFFFFF" class="title--3T2Pn mix--21Lfe"><tspan x="10.5" dx="0" dy="0">Antisocial</tspan></text><path fill-rule="evenodd" clip-rule="evenodd" d="M122.532 12.7996C121.676 13.3705 120.975 14.1439 120.489 15.051C120.004 15.9582 119.75 16.9711 119.75 17.9999C119.75 19.0287 120.004 20.0417 120.489 20.9488C120.975 21.856 121.676 22.6293 122.532 23.2002L121.7 24.4481C120.639 23.7402 119.768 22.7813 119.167 21.6564C118.565 20.5316 118.25 19.2756 118.25 17.9999C118.25 16.7242 118.565 15.4682 119.167 14.3434C119.768 13.2186 120.639 12.2597 121.7 11.5518L122.532 12.7996Z" fill="#FFFFFF"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M131.511 15.051C131.025 14.1439 130.324 13.3705 129.468 12.7996L130.3 11.5518C131.361 12.2597 132.232 13.2186 132.833 14.3434C133.435 15.4682 133.75 16.7242 133.75 17.9999C133.75 19.2756 133.435 20.5316 132.833 21.6564C132.232 22.7813 131.361 23.7402 130.3 24.4481L129.468 23.2002C130.324 22.6293 131.025 21.856 131.511 20.9488C131.996 20.0417 132.25 19.0287 132.25 17.9999C132.25 16.9711 131.996 15.9582 131.511 15.051Z" fill="#FFFFFF"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M124.413 15.5734C124.014 15.8399 123.687 16.2007 123.46 16.624C123.234 17.0473 123.115 17.52 123.115 18C123.115 18.4801 123.234 18.9527 123.46 19.376C123.687 19.7993 124.014 20.1602 124.413 20.4266L123.581 21.6744C122.976 21.2709 122.48 20.7245 122.137 20.0835C121.795 19.4426 121.615 18.7269 121.615 18C121.615 17.2731 121.795 16.5575 122.137 15.9165C122.48 15.2756 122.976 14.7291 123.581 14.3257L124.413 15.5734Z" fill="#FFFFFF"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M128.567 16.624C128.341 16.2007 128.014 15.8399 127.614 15.5734L128.447 14.3257C129.051 14.7291 129.547 15.2756 129.89 15.9165C130.233 16.5575 130.412 17.2731 130.412 18C130.412 18.7269 130.233 19.4426 129.89 20.0835C129.547 20.7245 129.051 21.2709 128.447 21.6744L127.614 20.4266C128.014 20.1602 128.341 19.7993 128.567 19.376C128.794 18.9527 128.912 18.4801 128.912 18C128.912 17.52 128.794 17.0473 128.567 16.624Z" fill="#FFFFFF"></path><path d="M125.997 18.9969C126.55 18.9969 126.997 18.5491 126.997 17.9967C126.997 17.4444 126.55 16.9966 125.997 16.9966C125.445 16.9966 124.997 17.4444 124.997 17.9967C124.997 18.5491 125.445 18.9969 125.997 18.9969Z" fill="#FFFFFF"></path></g></svg>
+                        </div>
+                        <div class="descrizionimix">
+                            <a class="playlist_write2" href="#">Antisocial</a>
+                            <a  class="playlist_write3" href="#">Radio del brano</a>
+                        </div>
+                    </div>
+                    <div class="mixcontainer-2">
+                        <div class="mixcontiner-1">
+                        <svg class="cellmix" viewBox="0 0 144 144" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="grid-figure-001052c46dc0880d7ce0ed38130477-clip"><rect width="136" height="136" fill="white" transform="translate(4 4)"></rect></clipPath></defs><rect x="2" y="2" width="140" height="140" fill="black"></rect><rect x="2" y="2" width="140" height="140" fill="#b9c1e1" fill-opacity="0.2" stroke="#b9c1e1" stroke-width="4"></rect><g clip-path="url(#grid-figure-001052c46dc0880d7ce0ed38130477-clip)"><image xlink:href="https://resources.tidal.com/images/6adf3a1a/4407/4d1e/a129/3fe796a9285a/320x320.jpg" x="16.0674" y="56.918" width="114" height="114" transform="rotate(-10 16.0674 56.918)"></image><text x="10.5" y="22.8" fill="#b9c1e1" class="title--3T2Pn mix--21Lfe"><tspan x="10.5" dx="0" dy="0">Goodbye</tspan><tspan x="10.5" dx="0" dy="14.3">Philadelph</tspan></text><path fill-rule="evenodd" clip-rule="evenodd" d="M122.532 12.7996C121.676 13.3705 120.975 14.1439 120.489 15.051C120.004 15.9582 119.75 16.9711 119.75 17.9999C119.75 19.0287 120.004 20.0417 120.489 20.9488C120.975 21.856 121.676 22.6293 122.532 23.2002L121.7 24.4481C120.639 23.7402 119.768 22.7813 119.167 21.6564C118.565 20.5316 118.25 19.2756 118.25 17.9999C118.25 16.7242 118.565 15.4682 119.167 14.3434C119.768 13.2186 120.639 12.2597 121.7 11.5518L122.532 12.7996Z" fill="#b9c1e1"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M131.511 15.051C131.025 14.1439 130.324 13.3705 129.468 12.7996L130.3 11.5518C131.361 12.2597 132.232 13.2186 132.833 14.3434C133.435 15.4682 133.75 16.7242 133.75 17.9999C133.75 19.2756 133.435 20.5316 132.833 21.6564C132.232 22.7813 131.361 23.7402 130.3 24.4481L129.468 23.2002C130.324 22.6293 131.025 21.856 131.511 20.9488C131.996 20.0417 132.25 19.0287 132.25 17.9999C132.25 16.9711 131.996 15.9582 131.511 15.051Z" fill="#b9c1e1"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M124.413 15.5734C124.014 15.8399 123.687 16.2007 123.46 16.624C123.234 17.0473 123.115 17.52 123.115 18C123.115 18.4801 123.234 18.9527 123.46 19.376C123.687 19.7993 124.014 20.1602 124.413 20.4266L123.581 21.6744C122.976 21.2709 122.48 20.7245 122.137 20.0835C121.795 19.4426 121.615 18.7269 121.615 18C121.615 17.2731 121.795 16.5575 122.137 15.9165C122.48 15.2756 122.976 14.7291 123.581 14.3257L124.413 15.5734Z" fill="#b9c1e1"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M128.567 16.624C128.341 16.2007 128.014 15.8399 127.614 15.5734L128.447 14.3257C129.051 14.7291 129.547 15.2756 129.89 15.9165C130.233 16.5575 130.412 17.2731 130.412 18C130.412 18.7269 130.233 19.4426 129.89 20.0835C129.547 20.7245 129.051 21.2709 128.447 21.6744L127.614 20.4266C128.014 20.1602 128.341 19.7993 128.567 19.376C128.794 18.9527 128.912 18.4801 128.912 18C128.912 17.52 128.794 17.0473 128.567 16.624Z" fill="#b9c1e1"></path><path d="M125.997 18.9969C126.55 18.9969 126.997 18.5491 126.997 17.9967C126.997 17.4444 126.55 16.9966 125.997 16.9966C125.445 16.9966 124.997 17.4444 124.997 17.9967C124.997 18.5491 125.445 18.9969 125.997 18.9969Z" fill="#b9c1e1"></path></g></svg>
+                        </div>
+                        <div class="descrizionimix">
+                            <a class="playlist_write2" href="#">Goodbye Philadelphia</a>
+                            <a  class="playlist_write3" href="#">Radio del brano</a>
+                        </div>
+                    </div>
+
+                    <div class="mixcontainer-2">
+                        <div class="mixcontiner-1">
+                            <div class="image2 cellmix2hover">
+                                <img class="" src="https://resources.tidal.com/images/5b9a2431/53de/48c7/847e/a8487f308d20/480x480.jpg" alt="">
+
+                            </div>
+                        </div>
+                        <div class="descrizionimix">
+                            <a class="playlist_write2" href="#">Dua Lipa</a>
+                            <a  class="playlist_write3" href="#">Essential</a>
+                        </div>
+                    </div>
+                    <div class="mixcontainer-2">
+                        <div class="mixcontiner-1">
+                            <div class="image2 cellmix2hover">
+                                <img class="" src="https://resources.tidal.com/images/0b68e959/a2a4/433f/aafc/67f0d2416d5c/480x480.jpg" alt="">
+
+                            </div>
+                        </div>
+                        <div class="descrizionimix">
+                            <a class="playlist_write2" href="#">Marshmello</a>
+                            <a  class="playlist_write3" href="#">Essential</a>
+                        </div>
+                    </div>
+                    <div class="mixcontainer-2">
+                        <div class="mixcontiner-1">
+                            <div class="image2 cellmix2hover">
+                                <img class="" src="https://resources.tidal.com/images/c5cbfc2a/19ad/4e17/ac2c/dbcb20d5ae1c/320x320.jpg" alt="">
+
+                            </div>
+                        </div>
+                        <div class="descrizionimix">
+                            <a class="playlist_write2" href="#">Oh my my</a>
+                            <a  class="playlist_write3" href="#">Onerepublic</a>
+                        </div>
+                    </div>
+                    <div class="mixcontainer-2">
+                        <div class="mixcontiner-1">
+                            <div class="image2 cellmix2hover">
+                                <img class="" src="https://resources.tidal.com/images/2151387f/6a06/4678/8d63/99ee645a072c/320x320.jpg" alt="">
+
+                            </div>
+                        </div>
+                        <div class="descrizionimix">
+                            <a class="playlist_write2" href="#">Brighter Days</a>
+                            <a  class="playlist_write3" href="#">Sigala</a>
+                        </div>
+                    </div>
+                    <div class="mixcontainer-2">
+                        <div class="mixcontiner-1">
+                            <div class="image2 cellmix2hover">
+                                <img class="" src="https://resources.tidal.com/images/bfa697e5/4a68/4a1e/8890/bf1fe9fa7775/480x480.jpg" alt="">
+
+                            </div>
+                        </div>
+                        <div class="descrizionimix">
+                            <a class="playlist_write2" href="#">Logic</a>
+                            <a  class="playlist_write3" href="#">Essential</a>
+                        </div>
+                    </div>
+
+
+
+                </div>
+
+            </div>
+
+
+
+    </div>
+    <footer class="mediaplay clearfix">
+        <div class="flexfooter">
+            
+            <div class="borderplayer">
+            </div>
+            <div class="circleplayer"><i class="fas fa-circle"></i></div>
+            <div class="toolTip--fede">2.45</div>
+            <div class="leftcolumn">
+                <div class="squareimg">
+                    <img class="riproduzioneimg" src="https://resources.tidal.com/images/7620d835/efbe/4dd0/8a49/d6491db37361/320x320.jpg">
+                <div class="riproduzione">
+                    </div>
+                </div>
+                <div class="columnartista">
+                    <a class="titolihover" href="#">Peculiarities</a>
+                <div class="inplayda">
+                    <a class="titolihover centerartista" href="#">Federico Bartoli</a>
+                    <a class="titolihover downartista" href="#">In play da: Peculiarities(single)</a>
+                </div>
+                </div>
+                <div class="rowrhearts">
+                <svg class="small circleclick"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="18.5" cy="12" r="1.5"></circle></svg>
+                <input id="heartsclick" type="checkbox"/>
+                <label class="small heart" for="heartsclick"> &hearts; </label>
+                </div>
+            </div>
+            <div class="centercolumn">
+                <div class="mainplayer">
+                    <svg class="icon- small  playerhover1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.2 14.8L19.6 16.2 14.7 16.2 12 12 14.7 7.8 19.6 7.8 18.2 9.2 19.3 10.3 22.5 7 19.3 3.8 18.2 4.9 19.6 6.3 13.8 6.3 11.1 10.6 8.4 6.3 2.5 6.3 2.5 7.8 7.5 7.8 10.2 12 7.5 16.2 2.5 16.2 2.5 17.7 8.4 17.7 11.1 13.4 13.8 17.7 19.6 17.7 18.2 19.1 19.3 20.2 22.5 16.9 19.3 13.7 18.2 14.8z"></path></svg>
+                    <svg  class="icon- whitericon playerhover" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 4L8 11.3 8 4 5 4 5 20 8 20 8 12.7 19 20 19 4z"></path></svg>
+                    <div id="cp_container_1" class="cp-container"><a class="cp-play"> <svg  class="icon- whitericon playerhover"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M4 0L4 24 22 12 4 0z"></path></svg></a>
+                    <a class="cp-pause" style="display:none;"> <svg  class="icon- whitericon playerhover"   xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 0H10V24H4z"></path><path d="M14 0H20V24H14z"></path></svg></a></div>
+                    <svg  class="icon- whitericon playerhover"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M16 4L16 11.3 5 4 5 20 16 12.7 16 20 19 20 19 4 16 4z"></path></svg>
+                    <svg class="icon- small playerhover1"  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.16,13.2H8.85V11.7H3.6V17H5.1V14.26L11,20.18a.75.75,0,0,0,.53.22h8.1V18.9H11.86Z"></path><path d="M18.9,7V9.74L13,3.82a.75.75,0,0,0-.53-.22H4.35V5.1h7.79l5.7,5.7H15.15v1.5H20.4V7Z"></path></svg>
+                </div>
+            </div>
+            <div class="rightcolumn">
+                <div class="quality">
+                <svg class="icon- hifi"  width="42" height="22" viewBox="0 0 42 22" xmlns="http://www.w3.org/2000/svg"><path d="M13.6607 14.894H15.5197V7.106H13.6497V10.087H10.4927V7.106H8.64465V14.894H10.4927V11.671H13.6607V14.894Z"></path><path d="M20.3194 7.106H18.4604V14.894H20.3194V7.106Z"></path><path d="M28.9796 8.679V7.106H23.2596V14.894H25.0856V11.836H28.6496V10.307H25.0856V8.679H28.9796Z"></path><path d="M33.3553 7.106H31.4963V14.894H33.3553V7.106Z"></path></svg>
+                </div>
+                <div class="time">
+                    <p class="greytime">0:00 /</p>
+                    <p class="whitetime"> 3:25</p>
+                </div>
+
+                <div class="volumeslider">
+                    <svg class="icon- whitericon marginslider" xmlns="http://www.w3.org/2000/svg" class="icon--wOcoD" viewBox="0 0 24 24"><path d="M1.83,8.64v6.72l4.08.51,8.22,5.65V2.47L5.9,8.13Zm10.8-3.31V18.67L6.45,14.43,3.33,14V10l3.12-.39Z"></path><path d="M18.2,3.8l-.81,1.26a8.25,8.25,0,0,1,0,13.88l.81,1.26a9.75,9.75,0,0,0,0-16.4Z"></path><path d="M15.9,6.11l-.83,1.25a5.56,5.56,0,0,1,0,9.28l.83,1.25a7.06,7.06,0,0,0,0-11.78Z"></path></svg>
+                    <div class="musicslider"></div>
+                    <div class="musicsliderempty"></div>
+                    <div class="circleplayerbottom"><i class="fas fa-circle"></i></div>
+                    <svg class="icon- small playhover" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3.9 17.6H20.099999999999998V19.1H3.9z"></path><path d="M3.9 11.3H20.099999999999998V12.8H3.9z"></path><path d="M17.3 7.9L18.4 8.9 21.6 5.7 18.4 2.5 17.3 3.5 18.7 5 3.9 5 3.9 6.5 18.7 6.5 17.3 7.9z"></path></svg>
+                </div>
+            </div>
+
+        </div>
+    </footer>
+    </body>
+</html>
